@@ -50,6 +50,7 @@ namespace dit_react_bootstrap
 
             app.UseRouting();
 
+            // When UseEndpoints is added before UseSpa, the middleware chain first looks for an MVC controller route 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
@@ -57,6 +58,7 @@ namespace dit_react_bootstrap
                     pattern: "{controller}/{action=Index}/{id?}");
             });
 
+            // When UseSPA is added after UseEndpoints, the middleware chain will hit this if it does not find an MVC controller route
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
