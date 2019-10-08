@@ -1,7 +1,13 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.EntityFrameworkCore;
+using dit_react_bootstrap.Data;
+using dit_react_bootstrap.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +27,22 @@ namespace dit_react_bootstrap
         public void ConfigureServices(IServiceCollection services)
         {
 
+            /* Identity with the default UI */
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
+            );
+            services.AddDefaultIdentity<ApplicationUser>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            /* helper method that setups some default ASP.NET Core conventions on top of IdentityServer */
+            services.AddIdentityServer()
+                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();                
+
             services.AddControllersWithViews();
+
+            /* helper method that configures the app to validate JWT tokens produced by IdentityServer */
+            services.AddAuthentication()
+                .AddIdentityServerJwt();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -43,7 +64,9 @@ namespace dit_react_bootstrap
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+    
+            /* authentication middleware that is responsible for validating the request credentials and setting the user on the request context */
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
